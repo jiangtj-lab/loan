@@ -1,0 +1,29 @@
+{
+  "name": "loan",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "generate": "vite-ssg build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "element-plus": "^2.2.2",
+    "vue": "^3.2.36"
+  },
+  "devDependencies": {
+    "@iconify-json/ep": "^1.1.4",
+    "@types/node": "^18.6.1",
+    "@vitejs/plugin-vue": "^3.0.1",
+    "sass": "^1.52.1",
+    "typescript": "^4.7.2",
+    "unocss": "^0.44.7",
+    "unplugin-vue-components": "^0.21.2",
+    "vite": "^3.0.3",
+    "vite-ssg": "^0.20.0",
+    "vue-tsc": "^0.39.0"
+  },
+  "license": "AGPL-3.0"
+}
