@@ -92,7 +92,7 @@
   <el-dialog v-model="allModal.v" title="贷款金额">
     <el-form :inline="true">
       <el-form-item>
-        <el-input v-model.number="allModal.all" />
+        <el-input v-model="allModal.all" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="allModal.onSubmit">确定</el-button>
@@ -133,7 +133,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="利率">
-        <el-input v-model.number="liModal.li" />
+        <el-input v-model="liModal.li" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="liModal.onSubmit">确定</el-button>
@@ -154,7 +154,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="每期金额">
-        <el-input v-model.number="feeModal.fee" />
+        <el-input v-model="feeModal.fee" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="feeModal.onSubmit">确定</el-button>
@@ -209,7 +209,7 @@ const allModal = reactive({
   v: false,
   all: all.value,
   onSubmit: () => {
-    all.value = allModal.all
+    all.value = Number.parseFloat(allModal.all + '')
     calcAllFee()
     allModal.v = false
   }
@@ -234,17 +234,17 @@ const liModal = reactive({
   },
   onSubmit: () => {
     if (liModal.type === 1) {
-      yLi.value = liModal.li
+      yLi.value = Number.parseFloat(liModal.li + '')
       mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
       dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
     }
     if (liModal.type === 2) {
-      mLi.value = liModal.li
+      mLi.value = Number.parseFloat(liModal.li + '')
       yLi.value = Math.pow(1 + mLi.value, 12) - 1;
       dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
     }
     if (liModal.type === 3) {
-      dLi.value = liModal.li
+      dLi.value = Number.parseFloat(liModal.li + '')
       yLi.value = Math.pow(1 + dLi.value, 365) - 1;
       mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
     }
@@ -264,7 +264,7 @@ const feeModal = reactive({
     if (feeModal.type === 1) t = time.value
     if (feeModal.type === 2) t = time.value * 12
     if (feeModal.type === 3) t = time.value * 365
-    calcLi(feeModal.fee, t, a, i)
+    calcLi(Number.parseFloat(feeModal.fee + ''), t, a, i)
     let li = a[0] * 0.1 + a[1] * 0.01 + a[2] * 0.001 + a[3] * 0.0001 + a[4] * 0.00001 + a[5] * 0.000001
     if (!li) {
       ElMessage.error('Oops, 金额太少.')
@@ -274,7 +274,7 @@ const feeModal = reactive({
       yLi.value = li
       mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
       dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
-      yFA.value = feeModal.fee
+      yFA.value = Number.parseFloat(feeModal.fee + '')
       mFA.value = calcAmount(mLi.value, time.value * 12)
       dFA.value = calcAmount(dLi.value, time.value * 365)
     }
@@ -283,7 +283,7 @@ const feeModal = reactive({
       yLi.value = Math.pow(1 + mLi.value, 12) - 1;
       dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
       yFA.value = calcAmount(yLi.value, time.value)
-      mFA.value = feeModal.fee
+      mFA.value = Number.parseFloat(feeModal.fee + '')
       dFA.value = calcAmount(dLi.value, time.value * 365)
     }
     if (feeModal.type === 3) {
@@ -292,7 +292,7 @@ const feeModal = reactive({
       mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
       yFA.value = calcAmount(yLi.value, time.value)
       mFA.value = calcAmount(mLi.value, time.value * 12)
-      dFA.value = feeModal.fee
+      dFA.value = Number.parseFloat(feeModal.fee + '')
     }
     feeModal.v = false
   }
