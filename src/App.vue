@@ -2,7 +2,7 @@
   <el-config-provider namespace="ep">
     <BaseHeader />
     <div style="display: flex">
-      <div>
+      <div style="width: 100%">
         <LoanCalc />
       </div>
     </div>
