@@ -11,6 +11,7 @@
           {{ time }}年
         </el-descriptions-item>
 
+        <el-descriptions-item :span="3" />
         <el-descriptions-item :span="2">
           <template #label>按年:年利率</template>
           {{ (yLi * 100).toFixed(3) }}%
@@ -32,6 +33,7 @@
           {{ (yFA * time).toFixed(2) }}
         </el-descriptions-item>
 
+        <el-descriptions-item :span="3" />
         <el-descriptions-item :span="2">
           <template #label>按月:月利率</template>
           {{ (mLi * 100).toFixed(3) }}%
@@ -53,6 +55,7 @@
           {{ (mFA * time * 12).toFixed(2) }}
         </el-descriptions-item>
 
+        <el-descriptions-item :span="3" />
         <el-descriptions-item :span="2">
           <template #label>按日:日利率</template>
           {{ (dLi * 100).toFixed(3) }}%
@@ -82,14 +85,14 @@
   <el-row class="row-bg" justify="center" style="margin-top: 10px;">
     <el-button type="primary" plain @click="allModal.v = true">贷款金额</el-button>
     <el-button type="primary" plain @click="timeModal.v = true">期数</el-button>
-    <el-button type="primary" plain>贷款利率</el-button>
-    <el-button type="primary" plain>等额本息</el-button>
+    <el-button type="primary" plain @click="liModal.v = true">贷款利率</el-button>
+    <el-button type="primary" plain @click="feeModal.v = true">等额本息</el-button>
   </el-row>
 
   <el-dialog v-model="allModal.v" title="贷款金额">
     <el-form :inline="true">
       <el-form-item>
-        <el-input v-model="allModal.all" />
+        <el-input v-model.number="allModal.all" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="allModal.onSubmit">确定</el-button>
@@ -97,7 +100,7 @@
     </el-form>
   </el-dialog>
 
-  <el-dialog v-model="timeModal.v" title="贷款金额">
+  <el-dialog v-model="timeModal.v" title="期数">
     <el-form :inline="true">
       <el-form-item>
         <el-select v-model="timeModal.time">
@@ -111,6 +114,30 @@
       <el-form-item>
         <el-button type="primary" @click="timeModal.onSubmit">确定</el-button>
       </el-form-item>
+    </el-form>
+  </el-dialog>
+
+  <el-dialog v-model="liModal.v" title="利率">
+    <el-form :inline="true">
+      <el-form-item label="类型">
+        <el-radio-group v-model="liModal.type" @change="liModal.onChange">
+          <el-radio-button :label="1">年</el-radio-button>
+          <el-radio-button :label="2">月</el-radio-button>
+          <el-radio-button :label="3">日</el-radio-button>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="利率">
+        <el-input v-model.number="liModal.li" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="liModal.onSubmit">确定</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
+
+  <el-dialog v-model="feeModal.v" title="每期金额">
+    <el-form :inline="true">
+      通过每期金额推导利率，敬请期待
     </el-form>
   </el-dialog>
 </template>
@@ -171,8 +198,38 @@ const timeModal = reactive({
     timeModal.v = false
   }
 });
-const liModal = ref(false);
-const feeModal = ref(false);
+const liModal = reactive({
+  v: false,
+  type: 1,
+  li: yLi.value,
+  onChange: () => {
+    if (liModal.type === 1) liModal.li = yLi.value
+    if (liModal.type === 2) liModal.li = mLi.value
+    if (liModal.type === 3) liModal.li = dLi.value
+  },
+  onSubmit: () => {
+    if (liModal.type === 1) {
+      yLi.value = liModal.li
+      mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
+      dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
+    }
+    if (liModal.type === 2) {
+      mLi.value = liModal.li
+      yLi.value = Math.pow(1 + mLi.value, 12) - 1;
+      dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
+    }
+    if (liModal.type === 3) {
+      dLi.value = liModal.li
+      yLi.value = Math.pow(1 + dLi.value, 365) - 1;
+      mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
+    }
+    calcAllFee()
+    liModal.v = false
+  }
+});
+const feeModal = reactive({
+  v: false
+});
 </script>
 
 <style scoped>
