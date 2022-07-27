@@ -98,6 +98,9 @@
         <el-button type="primary" @click="allModal.onSubmit">确定</el-button>
       </el-form-item>
     </el-form>
+    <el-row>
+      该操作将重新计算每期金额
+    </el-row>
   </el-dialog>
 
   <el-dialog v-model="timeModal.v" title="期数">
@@ -115,6 +118,9 @@
         <el-button type="primary" @click="timeModal.onSubmit">确定</el-button>
       </el-form-item>
     </el-form>
+    <el-row>
+      该操作将重新计算每期金额
+    </el-row>
   </el-dialog>
 
   <el-dialog v-model="liModal.v" title="利率">
@@ -133,17 +139,36 @@
         <el-button type="primary" @click="liModal.onSubmit">确定</el-button>
       </el-form-item>
     </el-form>
+    <el-row>
+      该操作将重新计算每期金额
+    </el-row>
   </el-dialog>
 
   <el-dialog v-model="feeModal.v" title="每期金额">
     <el-form :inline="true">
-      通过每期金额推导利率，敬请期待
+      <el-form-item label="类型">
+        <el-radio-group v-model="feeModal.type">
+          <el-radio-button :label="1">年</el-radio-button>
+          <el-radio-button :label="2">月</el-radio-button>
+          <el-radio-button :label="3">日</el-radio-button>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="每期金额">
+        <el-input v-model.number="feeModal.fee" />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="feeModal.onSubmit">确定</el-button>
+      </el-form-item>
     </el-form>
+    <el-row>
+      该操作将重新计算利率
+    </el-row>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { computed, Ref, ref, reactive } from "vue";
+import { ElMessage } from 'element-plus'
 import {
   Iphone,
   Location,
@@ -228,8 +253,78 @@ const liModal = reactive({
   }
 });
 const feeModal = reactive({
-  v: false
+  v: false,
+  type: 2,
+  fee: 0,
+  onSubmit: () => {
+    // 12.345[6]%
+    let a = [0, 0, 0, 0, 0, 0]
+    let i = 0
+    let t = 0
+    if (feeModal.type === 1) t = time.value
+    if (feeModal.type === 2) t = time.value * 12
+    if (feeModal.type === 3) t = time.value * 365
+    calcLi(feeModal.fee, t, a, i)
+    let li = a[0] * 0.1 + a[1] * 0.01 + a[2] * 0.001 + a[3] * 0.0001 + a[4] * 0.00001 + a[5] * 0.000001
+    if (!li) {
+      ElMessage.error('Oops, 金额太少.')
+      return
+    }
+    if (feeModal.type === 1) {
+      yLi.value = li
+      mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
+      dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
+      yFA.value = feeModal.fee
+      mFA.value = calcAmount(mLi.value, time.value * 12)
+      dFA.value = calcAmount(dLi.value, time.value * 365)
+    }
+    if (feeModal.type === 2) {
+      mLi.value = li
+      yLi.value = Math.pow(1 + mLi.value, 12) - 1;
+      dLi.value = Math.pow(1 + yLi.value, 1 / 365) - 1;
+      yFA.value = calcAmount(yLi.value, time.value)
+      mFA.value = feeModal.fee
+      dFA.value = calcAmount(dLi.value, time.value * 365)
+    }
+    if (feeModal.type === 3) {
+      dLi.value = li
+      yLi.value = Math.pow(1 + dLi.value, 365) - 1;
+      mLi.value = Math.pow(1 + yLi.value, 1 / 12) - 1;
+      yFA.value = calcAmount(yLi.value, time.value)
+      mFA.value = calcAmount(mLi.value, time.value * 12)
+      dFA.value = feeModal.fee
+    }
+    feeModal.v = false
+  }
 });
+
+function calcLi(fee: number, t: number, a: Array<number>, i: number) {
+  let li = a[0] * 0.1 + a[1] * 0.01 + a[2] * 0.001 + a[3] * 0.0001 + a[4] * 0.00001 + a[5] * 0.000001 + Math.pow(0.1, i + 1)
+  let cFee = calcAmount(li, t)
+  if (cFee === fee) {
+    a[i] = a[i] + 1
+    return;
+  }
+  if (cFee > fee) {
+    if (i >= 5) {
+      return;
+    }
+    i++
+    calcLi(fee, t, a, i);
+  }
+  if (cFee < fee) {
+    if (a[i] >= 9) {
+      if (i >= 5) {
+        return;
+      }
+      i++
+    } else {
+      a[i] = a[i] + 1
+    }
+    calcLi(fee, t, a, i);
+  }
+}
+
 </script>
 
 <style scoped>
